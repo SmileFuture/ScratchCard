@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        #warp {
+            width: 300px;
+            height: 150px;
+            border: 1px solid red;
+            margin: 150px auto;
+        }
+    </style>
+</head>
+<body>
+
+<div id="warp">
+    <canvas id="can"></canvas>
+</div>
+
+<script type="text/javascript">
+    var can = document.querySelector("#can");
+    can.width = 300;
+    can.height = 150;
+    var area=can.width*can.height;
+    console.log(area);
+
+    //联系上下文
+    var cv = can.getContext("2d");
+
+    //设置中奖信息
+    var data = [{name: 'iPhone7 亮黑版', color: 'rgba(0, 0, 0, 1)'},
+        {name: 'iPhone7 黑色版', color: 'rgba(0, 0, 0, .9)'},
+        {name: 'iPhone7 安卓版', color: 'rgba(0, 255, 0, 1)'},
+        {name: 'iPhone7 塞班版', color: 'rgba(255, 0, 0, 1)'},
+        {name: 'iPhone7 无忧版', color: 'hotpink'},
+        {name: 'iPhone7 JJ版', color: 'darkgreen'}];
+
+    //获得index值
+     var index=Math.floor(Math.random()*data.length);
+    //获得对象
+    var dataIndex=data[index];
+    //设置文字
+    cv.font="800 30px 微软雅黑";
+    cv.textBaseline = 'middle';
+    cv.textAlign="center";
+    cv.fillStyle=dataIndex.color;
+    cv.fillText(dataIndex.name,can.width/2,can.height/2);
+    //将背景转换为canvas特有的base64格式
+    var dataUrl=can.toDataURL("image/png",1);
+    //将背景图片设置为canvas画布的背景
+    can.style.backgroundImage="url("+dataUrl+")";
+    //给画布添加遮罩层
+    cv.fillStyle="#CCC";
+    cv.fillRect(0,0,can.width,can.height);
+    //设置点击事件
+    var flag=false;
+    var r=10;
+    can.addEventListener('mousedown',function(){
+             flag=true;
+            // destination-out 是让重叠部分的内容变为透明
+            cv.globalCompositeOperation = 'destination-out';
+    });
+    can.addEventListener('mouseup',function(){
+            flag=false;
+    });
+
+    can.addEventListener('mousemove',function(e){
+            if(flag){
+
+                var x0 = e.clientX - can.offsetLeft;
+                var y0 = e.clientY - can.offsetTop;
+
+                cv.moveTo(x0, y0);
+                cv.arc(x0, y0, r, 0, Math.PI * 2);
+                cv.fill();
+
+                var data = cv.getImageData(0,0,can.width,can.height).data;
+
+                for(var i=0,j=0;i<data.length;i+=4){
+                    if(data[i] && data[i+1] && data[i+2] && data[i+3]){
+                        j++;
+                    }
+                }
+                //当图层被擦除剩余70%时触发
+                if(j<=area*0.7){
+                    cv.clearRect(0,0,can.width,can.height);
+                }
+            }
+    });
+
+
+</script>
+</body>
+</html>
